@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Challenge: How Would You Run Your Country?</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #f72585;
+            --success-color: #06ffa5;
+            --warning-color: #ffbe0b;
+            --danger-color: #fb5607;
+            --dark-color: #2b2d42;
+            --light-color: #f8f9fa;
+            --user-color: #4cc9f0;
+            --real-color: #7209b7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .game-container {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .game-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .game-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .game-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .game-content {
+            padding: 30px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .country-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .country-card {
+            background-color: var(--light-color);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .country-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .country-flag {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .budget-category {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: var(--light-color);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .budget-category:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .category-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .category-icon {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .budget-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .budget-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .budget-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .budget-value {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .budget-allocation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .remaining-budget {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .remaining-budget.positive {
+            background-color: rgba(6, 255, 165, 0.2);
+            color: #048a48;
+        }
+
+        .remaining-budget.negative {
+            background-color: rgba(251, 86, 7, 0.2);
+            color: #c41e3a;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+
+        .comparison-container {
+            margin-top: 30px;
+        }
+
+        .comparison-card {
+            background-color: var(--light-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .comparison-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .comparison-bars {
+            display: flex;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .user-bar {
+            background-color: var(--user-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .real-bar {
+            background-color: var(--real-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .difference {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .difference.positive {
+            color: var(--success-color);
+        }
+
+        .difference.negative {
+            color: var(--danger-color);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 30px 0;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .summary-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .summary-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 15px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            margin-right: 8px;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+        }
+
+        .progress {
+            height: 25px;
+            border-radius: 15px;
+            background-color: #e9ecef;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .info-tooltip {
+            display: inline-block;
+            margin-left: 5px;
+            color: var(--primary-color);
+            cursor: help;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        .custom-toast {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .toast-icon {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .toast-message {
+            flex-grow: 1;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, var(--accent-color), var(--danger-color));
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(247, 37, 133, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .game-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .country-selection {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .comparison-bars {
+                height: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-container">
+            <div class="game-header">
+                <h1><i class="bi bi-piggy-bank-fill"></i> Budget Challenge</h1>
+                <p>How would you allocate your country's budget? Compare your choices with real government spending!</p>
+            </div>
+            
+            <div class="game-content">
+                <!-- Country Selection Screen -->
+                <div id="countrySelection" class="screen active">
+                    <h2 class="text-center mb-4">Select Your Country</h2>
+                    <div class="country-selection">
+                        <div class="country-card" data-country="usa">
+                            <div class="country-flag">🇺🇸</div>
+                            <h3>United States</h3>
+                            <p>Federal Budget</p>
+                        </div>
+                        <div class="country-card" data-country="uk">
+                            <div class="country-flag">🇬🇧</div>
+                            <h3>United Kingdom</h3>
+                            <p>Government Budget</p>
+                        </div>
+                        <div class="country-card" data-country="germany">
+                            <div class="country-flag">🇩🇪</div>
+                            <h3>Germany</h3>
+                            <p>Federal Budget</p>
+                        </div>
+                        <div class="country-card" data-country="japan">
+                            <div class="country-flag">🇯🇵</div>
+                            <h3>Japan</h3>
+                            <p>National Budget</p>
+                        </div>
+                        <div class="country-card" data-country="canada">
+                            <div class="country-flag">🇨🇦</div>
+                            <h3>Canada</h3>
+                            <p>Federal Budget</p>
+                        </div>
+                        <div class="country-card" data-country="australia">
+                            <div class="country-flag">🇦🇺</div>
+                            <h3>Australia</h3>
+                            <p>Federal Budget</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Budget Allocation Screen -->
+                <div id="budgetAllocation" class="screen">
+                    <h2 class="text-center mb-4">Allocate Your Budget</h2>
+                    <p class="text-center mb-4">Distribute <span id="totalBudget" class="fw-bold"></span> across different sectors</p>
+                    
+                    <div class="remaining-budget positive" id="remainingBudget">
+                        Remaining: <span id="remainingAmount"></span>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress">
+                            <div class="progress-bar" id="budgetProgress" role="progressbar" style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                    
+                    <div id="budgetCategories"></div>
+                    
+                    <div class="text-center mt-4">
+                        <button class="btn btn-primary" id="submitBudget">Submit Budget</button>
+                    </div>
+                </div>
+                
+                <!-- Results Screen -->
+                <div id="resultsScreen" class="screen">
+                    <h2 class="text-center mb-4">Your Budget vs. Real Government Spending</h2>
+                    
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: var(--user-color)"></div>
+                            <span>Your Allocation</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: var(--real-color)"></div>
+                            <span>Actual Spending</span>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                    
+                    <div class="comparison-container" id="comparisonContainer"></div>
+                    
+                    <div class="summary-card">
+                        <h3 class="summary-title">Budget Analysis Summary</h3>
+                        <div id="summaryContent"></div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button class="restart-btn" id="restartGame">Play Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script>
+        // Game data
+        const budgetData = {
+            usa: {
+                name: "United States",
+                total: 4.8, // Trillion USD
+                currency: "Trillion USD",
+                categories: {
+                    health: { name: "Healthcare", icon: "bi-heart-pulse-fill", actual: 20, description: "Medicare, Medicaid, public health services" },
+                    defense: { name: "Defense", icon: "bi-shield-fill-check", actual: 15, description: "Military operations, personnel, equipment" },
+                    education: { name: "Education", icon: "bi-mortarboard-fill", actual: 5, description: "School funding, student loans, research" },
+                    infrastructure: { name: "Infrastructure", icon: "bi-buildings-fill", actual: 3, description: "Transportation, utilities, public works" },
+                    socialSecurity: { name: "Social Security", icon: "bi-people-fill", actual: 23, description: "Retirement and disability benefits" },
+                    welfare: { name: "Welfare Programs", icon: "bi-house-heart-fill", actual: 12, description: "Unemployment, food assistance, housing" },
+                    debtInterest: { name: "Debt Interest", icon: "bi-cash-stack", actual: 8, description: "Interest on national debt" },
+                    other: { name: "Other Programs", icon: "bi-three-dots", actual: 14, description: "Government operations, foreign aid, etc." }
+                }
+            },
+            uk: {
+                name: "United Kingdom",
+                total: 1.1, // Trillion GBP
+                currency: "Trillion GBP",
+                categories: {
+                    health: { name: "Healthcare", icon: "bi-heart-pulse-fill", actual: 20, description: "NHS, public health services" },
+                    defense: { name: "Defense", icon: "bi-shield-fill-check", actual: 5, description: "Military operations, personnel, equipment" },
+                    education: { name: "Education", icon: "bi-mortarboard-fill", actual: 12, description: "School funding, universities, research" },
+                    infrastructure: { name: "Infrastructure", icon: "bi-buildings-fill", actual: 6, description: "Transportation, utilities, public works" },
+                    socialSecurity: { name: "Social Security", icon: "bi-people-fill", actual: 24, description: "State pensions, benefits" },
+                    welfare: { name: "Welfare Programs", icon: "bi-house-heart-fill", actual: 15, description: "Unemployment, housing, disability benefits" },
+                    debtInterest: { name: "Debt Interest", icon: "bi-cash-stack", actual: 6, description: "Interest on national debt" },
+                    other: { name: "Other Programs", icon: "bi-three-dots", actual: 12, description: "Government operations, foreign aid, etc." }
+                }
+            },
+            germany: {
+                name: "Germany",
+                total: 1.7, // Trillion EUR
+                currency: "Trillion EUR",
+                categories: {
+                    health: { name: "Healthcare", icon: "bi-heart-pulse-fill", actual: 19, description: "Health insurance, public health services" },
+                    defense: { name: "Defense", icon: "bi-shield-fill-check", actual: 3, description: "Military operations, personnel, equipment" },
+                    education: { name: "Education", icon: "bi-mortarboard-fill", actual: 9, description: "School funding, universities, research" },
+                    infrastructure: { name: "Infrastructure", icon: "bi-buildings-fill", actual: 7, description: "Transportation, utilities, public works" },
+                    socialSecurity: { name: "Social Security", icon: "bi-people-fill", actual: 28, description: "Pensions, unemployment benefits" },
+                    welfare: { name: "Welfare Programs", icon: "bi-house-heart-fill", actual: 15, description: "Family benefits, housing assistance" },
+                    debtInterest: { name: "Debt Interest", icon: "bi-cash-stack", actual: 4, description: "Interest on national debt" },
+                    other: { name: "Other Programs", icon: "bi-three-dots", actual: 15, description: "Government operations, foreign aid, etc." }
+                }
+            },
+            japan: {
+                name: "Japan",
+                total: 1.0, // Trillion JPY (simplified)
+                currency: "Trillion JPY",
+                categories: {
+                    health: { name: "Healthcare", icon: "bi-heart-pulse-fill", actual: 10, description: "National health insurance, public health" },
+                    defense: { name: "Defense", icon: "bi-shield-fill-check", actual: 5, description: "Self-Defense Forces, military equipment" },
+                    education: { name: "Education", icon: "bi-mortarboard-fill", actual: 6, description: "School funding, universities, research" },
+                    infrastructure: { name: "Infrastructure", icon: "bi-buildings-fill", actual: 8, description: "Transportation, utilities, public works" },
+                    socialSecurity: { name: "Social Security", icon: "bi-people-fill", actual: 33, description: "Pensions, healthcare for elderly" },
+                    welfare: { name: "Welfare Programs", icon: "bi-house-heart-fill", actual: 7, description: "Childcare, family benefits" },
+                    debtInterest: { name: "Debt Interest", icon: "bi-cash-stack", actual: 10, description: "Interest on national debt" },
+                    other: { name: "Other Programs", icon: "bi-three-dots", actual: 21, description: "Government operations, foreign aid, etc." }
+                }
+            },
+            canada: {
+                name: "Canada",
+                total: 0.4, // Trillion CAD
+                currency: "Trillion CAD",
+                categories: {
+                    health: { name: "Healthcare", icon: "bi-heart-pulse-fill", actual: 12, description: "Healthcare transfers, public health" },
+                    defense: { name: "Defense", icon: "bi-shield-fill-check", actual: 7, description: "Canadian Armed Forces, military equipment" },
+                    education: { name: "Education", icon: "bi-mortarboard-fill", actual: 7, description: "Post-secondary funding, research grants" },
+                    infrastructure: { name: "Infrastructure", icon: "bi-buildings-fill", actual: 5, description: "Transportation, utilities, public works" },
+                    socialSecurity: { name: "Social Security", icon: "bi-people-fill", actual: 26, description: "Pensions, elderly benefits" },
+                    welfare: { name: "Welfare Programs", icon: "bi-house-heart-fill", actual: 13, description: "Employment insurance, child benefits" },
+                    debtInterest: { name: "Debt Interest", icon: "bi-cash-stack", actual: 7, description: "Interest on national debt" },
+                    other: { name: "Other Programs", icon: "bi-three-dots", actual: 23, description: "Government operations, foreign aid, etc." }
+                }
+            },
+            australia: {
+                name: "Australia",
+                total: 0.6, // Trillion AUD
+                currency: "Trillion AUD",
+                categories: {
+                    health: { name: "Healthcare", icon: "bi-heart-pulse-fill", actual: 16, description: "Medicare, public health services" },
+                    defense: { name: "Defense", icon: "bi-shield-fill-check", actual: 6, description: "Australian Defence Force, military equipment" },
+                    education: { name: "Education", icon: "bi-mortarboard-fill", actual: 8, description: "School funding, universities, research" },
+                    infrastructure: { name: "Infrastructure", icon: "bi-buildings-fill", actual: 4, description: "Transportation, utilities, public works" },
+                    socialSecurity: { name: "Social Security", icon: "bi-people-fill", actual: 35, description: "Age pension, disability support" },
+                    welfare: { name: "Welfare Programs", icon: "bi-house-heart-fill", actual: 8, description: "Family benefits, unemployment support" },
+                    debtInterest: { name: "Debt Interest", icon: "bi-cash-stack", actual: 3, description: "Interest on national debt" },
+                    other: { name: "Other Programs", icon: "bi-three-dots", actual: 20, description: "Government operations, foreign aid, etc." }
+                }
+            }
+        };
+
+        // Game state
+        let selectedCountry = null;
+        let userBudget = {};
+        let comparisonChart = null;
+
+        // DOM elements
+        const countrySelectionScreen = document.getElementById('countrySelection');
+        const budgetAllocationScreen = document.getElementById('budgetAllocation');
+        const resultsScreen = document.getElementById('resultsScreen');
+        const totalBudgetElement = document.getElementById('totalBudget');
+        const remainingBudgetElement = document.getElementById('remainingBudget');
+        const remainingAmountElement = document.getElementById('remainingAmount');
+        const budgetProgressElement = document.getElementById('budgetProgress');
+        const budgetCategoriesElement = document.getElementById('budgetCategories');
+        const submitBudgetButton = document.getElementById('submitBudget');
+        const comparisonContainer = document.getElementById('comparisonContainer');
+        const summaryContent = document.getElementById('summaryContent');
+        const restartGameButton = document.getElementById('restartGame');
+        const toastContainer = document.getElementById('toastContainer');
+
+        // Initialize the game
+        function init() {
+            // Add event listeners to country cards
+            document.querySelectorAll('.country-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    selectedCountry = this.dataset.country;
+                    startBudgetAllocation();
+                });
+            });
+
+            // Add event listener to submit button
+            submitBudgetButton.addEventListener('click', submitBudget);
+
+            // Add event listener to restart button
+            restartGameButton.addEventListener('click', restartGame);
+        }
+
+        // Start the budget allocation phase
+        function startBudgetAllocation() {
+            // Update UI
+            countrySelectionScreen.classList.remove('active');
+            budgetAllocationScreen.classList.add('active');
+
+            // Set total budget
+            const countryData = budgetData[selectedCountry];
+            totalBudgetElement.textContent = `${countryData.total} ${countryData.currency}`;
+
+            // Initialize user budget
+            userBudget = {};
+            Object.keys(countryData.categories).forEach(category => {
+                userBudget[category] = 0;
+            });
+
+            // Create budget category inputs
+            createBudgetCategories();
+
+            // Update remaining budget
+            updateRemainingBudget();
+        }
+
+        // Create budget category inputs
+        function createBudgetCategories() {
+            budgetCategoriesElement.innerHTML = '';
+            const countryData = budgetData[selectedCountry];
+
+            Object.entries(countryData.categories).forEach(([key, category]) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'budget-category';
+                categoryDiv.innerHTML = `
+                    <div class="category-header">
+                        <div class="category-title">
+                            <i class="bi ${category.icon} category-icon"></i>
+                            ${category.name}
+                            <i class="bi bi-info-circle info-tooltip" data-bs-toggle="tooltip" title="${category.description}"></i>
+                        </div>
+                        <div class="budget-value">
+                            <span id="${key}-value">0</span>%
+                        </div>
+                    </div>
+                    <input type="range" class="budget-slider" id="${key}-slider" min="0" max="100" value="0" step="1">
+                    <div class="budget-allocation">
+                        <span>0%</span>
+                        <span>100%</span>
+                    </div>
+                `;
+                budgetCategoriesElement.appendChild(categoryDiv);
+
+                // Add event listener to slider
+                const slider = document.getElementById(`${key}-slider`);
+                const valueElement = document.getElementById(`${key}-value`);
+                
+                slider.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    userBudget[key] = value;
+                    valueElement.textContent = value;
+                    updateRemainingBudget();
+                });
+            });
+
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        // Update remaining budget display
+        function updateRemainingBudget() {
+            const totalAllocated = Object.values(userBudget).reduce((sum, value) => sum + value, 0);
+            const remaining = 100 - totalAllocated;
+            
+            remainingAmountElement.textContent = `${remaining}%`;
+            
+            if (remaining === 0) {
+                remainingBudgetElement.className = 'remaining-budget positive';
+                remainingBudgetElement.innerHTML = `Perfect! You've allocated the entire budget.`;
+                submitBudgetButton.disabled = false;
+            } else if (remaining > 0) {
+                remainingBudgetElement.className = 'remaining-budget positive';
+                remainingBudgetElement.innerHTML = `Remaining: <span id="remainingAmount">${remaining}%</span>`;
+                submitBudgetButton.disabled = true;
+            } else {
+                remainingBudgetElement.className = 'remaining-budget negative';
+                remainingBudgetElement.innerHTML = `Over budget by: <span id="remainingAmount">${Math.abs(remaining)}%</span>`;
+                submitBudgetButton.disabled = true;
+            }
+
+            // Update progress bar
+            budgetProgressElement.style.width = `${totalAllocated}%`;
+            budgetProgressElement.textContent = `${totalAllocated}%`;
+            
+            if (totalAllocated > 100) {
+                budgetProgressElement.style.background = 'linear-gradient(90deg, var(--danger-color), var(--accent-color))';
+            } else {
+                budgetProgressElement.style.background = 'linear-gradient(90deg, var(--primary-color), var(--secondary-color))';
+            }
+        }
+
+        // Submit budget and show results
+        function submitBudget() {
+            // Update UI
+            budgetAllocationScreen.classList.remove('active');
+            resultsScreen.classList.add('active');
+
+            // Create comparison chart
+            createComparisonChart();
+
+            // Create detailed comparisons
+            createDetailedComparisons();
+
+            // Generate summary
+            generateSummary();
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Create comparison chart
+        function createComparisonChart() {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            const countryData = budgetData[selectedCountry];
+            
+            const labels = [];
+            const userData = [];
+            const actualData = [];
+            
+            Object.entries(countryData.categories).forEach(([key, category]) => {
+                labels.push(category.name);
+                userData.push(userBudget[key]);
+                actualData.push(category.actual);
+            });
+
+            // Destroy existing chart if it exists
+            if (comparisonChart) {
+                comparisonChart.destroy();
+            }
+
+            comparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Your Allocation',
+                            data: userData,
+                            backgroundColor: 'rgba(76, 201, 240, 0.7)',
+                            borderColor: 'rgba(76, 201, 240, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Actual Spending',
+                            data: actualData,
+                            backgroundColor: 'rgba(114, 9, 183, 0.7)',
+                            borderColor: 'rgba(114, 9, 183, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 40,
+                            title: {
+                                display: true,
+                                text: 'Percentage of Budget (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Budget Categories'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create detailed comparisons
+        function createDetailedComparisons() {
+            comparisonContainer.innerHTML = '';
+            const countryData = budgetData[selectedCountry];
+            
+            Object.entries(countryData.categories).forEach(([key, category]) => {
+                const userValue = userBudget[key];
+                const actualValue = category.actual;
+                const difference = userValue - actualValue;
+                
+                const comparisonDiv = document.createElement('div');
+                comparisonDiv.className = 'comparison-card';
+                
+                // Calculate bar widths
+                const maxValue = Math.max(userValue, actualValue);
+                const userWidth = (userValue / maxValue) * 100;
+                const actualWidth = (actualValue / maxValue) * 100;
+                
+                comparisonDiv.innerHTML = `
+                    <div class="comparison-header">
+                        <div class="comparison-title">
+                            <i class="bi ${category.icon} category-icon"></i>
+                            ${category.name}
+                        </div>
+                        <div class="difference ${difference >= 0 ? 'positive' : 'negative'}">
+                            ${difference >= 0 ? '+' : ''}${difference}%
+                        </div>
+                    </div>
+                    <div class="comparison-bars">
+                        <div class="user-bar" style="width: ${userWidth}%">${userValue}%</div>
+                        <div class="real-bar" style="width: ${actualWidth}%">${actualValue}%</div>
+                    </div>
+                    <p class="text-muted small">${category.description}</p>
+                `;
+                
+                comparisonContainer.appendChild(comparisonDiv);
+            });
+        }
+
+        // Generate summary
+        function generateSummary() {
+            const countryData = budgetData[selectedCountry];
+            let summaryHTML = '';
+            
+            // Calculate total differences
+            let totalDifference = 0;
+            let biggestIncrease = { category: '', value: 0 };
+            let biggestDecrease = { category: '', value: 0 };
+            
+            Object.entries(countryData.categories).forEach(([key, category]) => {
+                const difference = userBudget[key] - category.actual;
+                totalDifference += Math.abs(difference);
+                
+                if (difference > biggestIncrease.value) {
+                    biggestIncrease = { category: category.name, value: difference };
+                }
+                
+                if (difference < biggestDecrease.value) {
+                    biggestDecrease = { category: category.name, value: difference };
+                }
+            });
+            
+            // Calculate alignment score
+            const maxPossibleDifference = 100 * Object.keys(countryData.categories).length;
+            const alignmentScore = Math.round((1 - totalDifference / maxPossibleDifference) * 100);
+            
+            // Generate summary based on alignment
+            if (alignmentScore > 80) {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <i class="bi bi-trophy-fill summary-icon"></i>
+                        <span>Excellent alignment! Your budget priorities closely match ${countryData.name}'s actual spending.</span>
+                    </div>
+                `;
+            } else if (alignmentScore > 60) {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <i class="bi bi-hand-thumbs-up-fill summary-icon"></i>
+                        <span>Good alignment! You share some priorities with ${countryData.name}'s government.</span>
+                    </div>
+                `;
+            } else if (alignmentScore > 40) {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <i class="bi bi-info-circle-fill summary-icon"></i>
+                        <span>Moderate alignment. You have some different priorities compared to ${countryData.name}'s government.</span>
+                    </div>
+                `;
+            } else {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <i class="bi bi-exclamation-triangle-fill summary-icon"></i>
+                        <span>Low alignment. Your budget priorities differ significantly from ${countryData.name}'s actual spending.</span>
+                    </div>
+                `;
+            }
+            
+            // Add biggest differences
+            if (biggestIncrease.value > 0) {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <i class="bi bi-arrow-up-circle-fill summary-icon"></i>
+                        <span>You prioritized ${biggestIncrease.category} the most, allocating ${biggestIncrease.value}% more than the actual spending.</span>
+                    </div>
+                `;
+            }
+            
+            if (biggestDecrease.value < 0) {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <i class="bi bi-arrow-down-circle-fill summary-icon"></i>
+                        <span>You allocated ${Math.abs(biggestDecrease.value)}% less to ${biggestDecrease.category} compared to actual spending.</span>
+                    </div>
+                `;
+            }
+            
+            // Add educational note
+            summaryHTML += `
+                <div class="summary-item">
+                    <i class="bi bi-lightbulb-fill summary-icon"></i>
+                    <span>Government budgets reflect complex policy decisions, historical commitments, and political priorities. Understanding these allocations helps citizens engage in informed civic discourse.</span>
+                </div>
+            `;
+            
+            summaryContent.innerHTML = summaryHTML;
+        }
+
+        // Restart the game
+        function restartGame() {
+            // Reset game state
+            selectedCountry = null;
+            userBudget = {};
+            
+            // Reset UI
+            resultsScreen.classList.remove('active');
+            countrySelectionScreen.classList.add('active');
+            
+            // Show toast
+            showToast('Game reset! Select a country to play again.', 'info');
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            
+            let icon = '';
+            switch(type) {
+                case 'success':
+                    icon = '<i class="bi bi-check-circle-fill toast-icon text-success"></i>';
+                    break;
+                case 'error':
+                    icon = '<i class="bi bi-x-circle-fill toast-icon text-danger"></i>';
+                    break;
+                case 'warning':
+                    icon = '<i class="bi bi-exclamation-circle-fill toast-icon text-warning"></i>';
+                    break;
+                default:
+                    icon = '<i class="bi bi-info-circle-fill toast-icon text-primary"></i>';
+            }
+            
+            toast.innerHTML = `
+                ${icon}
+                <div class="toast-message">${message}</div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Initialize the game when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
